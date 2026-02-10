@@ -18,67 +18,48 @@ import android.widget.EditText;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-public class MainActivity extends AppCompatActivity {
-    ListView cityList;
-    ArrayAdapter<String> cityAdapter;
-    ArrayList<String> dataList;
-    EditText editCity;
-    Button addButton, deleteButton;
-    int selectedPosition = -1;
 
+public class MainActivity extends AppCompatActivity implements AddCityFragment.AddCityDialogListener{
+    private ArrayList<City> dataList;
+    private ListView cityList;
+    private CityArrayAdapter cityAdapter;
+    @Override
+    public void addCity(City city) {
+//        cityAdapter.add(city);
+        if (!dataList.contains(city)) {
+            cityAdapter.add(city);
+        }
+        cityAdapter.notifyDataSetChanged();
+        cityAdapter.notifyDataSetChanged();
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        cityList = findViewById(R.id.cityList);
-        editCity = findViewById(R.id.editCity);
-        addButton = findViewById(R.id.addButton);
-        deleteButton = findViewById(R.id.deleteButton);
-        String []cities = {"Edmonton", "Vancouver", "Moscow", "Sydney", "Berlin", "Vienna", "Tokyo", "Beijing", "Osaka", "New Delhi"};
+        String[] cities = { "Edmonton", "Vancouver", "Toronto" };
+        String[] provinces = { "AB", "BC", "ON" };
         dataList = new ArrayList<>();
-        dataList.addAll(Arrays.asList(cities));
-        cityAdapter = new ArrayAdapter<>(this, R.layout.content, dataList);
+        for (int i = 0; i < cities.length; i++) {
+            dataList.add(new City(cities[i], provinces[i]));
+        }
+        cityList = findViewById(R.id.city_list);
+        cityAdapter = new CityArrayAdapter(this, dataList);
         cityList.setAdapter(cityAdapter);
         cityList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                selectedPosition = position;
-                cityList.setItemChecked(position, true);
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                City selectedCity = dataList.get(i);
+                AddCityFragment.newInstance(selectedCity).show(getSupportFragmentManager(), "EDIT_CITY");
             }
         });
-        addButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String city = editCity.getText().toString().trim();
-
-                if (city.isEmpty()) {
-                    Toast.makeText(MainActivity.this, "Enter a city", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                dataList.add(city);
-                cityAdapter.notifyDataSetChanged();
-                editCity.setText("");
-            }
+        FloatingActionButton fab = findViewById(R.id.button_add_city);
+        fab.setOnClickListener(v -> {
+            new AddCityFragment().show(getSupportFragmentManager(), "Add City");
         });
-
-        // Delete city
-        deleteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (selectedPosition == -1) {
-                    Toast.makeText(MainActivity.this, "Select a city first", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                dataList.remove(selectedPosition);
-                cityAdapter.notifyDataSetChanged();
-                selectedPosition = -1;
-            }
-        });
-
     }
 
+
 }
+
